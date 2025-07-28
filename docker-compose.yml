@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      - todolist_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pexample"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build: ./backend
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:3000"
+    depends_on:
+      - api
+    networks:
+      - frontend
+
+volumes:
+  todolist_data:
+
+networks:
+  backend:
+  frontend:
