@@ -38,12 +38,16 @@ pipeline {
 
 stage('Build Docker Image') {
     steps {
-        echo "Building Docker image"
-        sh '''
-            docker build -t ghcr.io/nimaa31/todolist:latest ./frontend
-        '''
+        script {
+            echo 'Building Docker image'
+            def version = "v1.0.${env.BUILD_NUMBER}"
+            sh """
+                docker build -t ghcr.io/nimaa31/todolist:latest -t ghcr.io/nimaa31/todolist:${version} ./frontend
+            """
+        }
     }
 }
+
 
 
         stage('Tag GitHub Repo') {

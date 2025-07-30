@@ -23,6 +23,7 @@ services:
     build:
       context: .
       dockerfile: ./jenkins/Dockerfile
+    user: root  
     ports:
       - "8081:8080"     
       - "8080:3000"     
