@@ -2,13 +2,15 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('ghcr') 
+        DOCKER_CREDENTIALS = credentials('ghcr-token')
+        VERSION_TAG = "v1.0.${BUILD_NUMBER}"
+        IMAGE_NAME = "ghcr.io/nimaa31/tptodo"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "📥 Cloning repository..."
+                echo "🔁 Cloning repository..."
                 checkout scm
                 echo "✅ Code checked out"
             }
@@ -32,8 +34,9 @@ pipeline {
             steps {
                 echo "🐳 Building Docker image"
                 sh '''
-                    docker build -t nimaa31/tptodo:latest .
-                    echo "✅ Docker image built"
+                    docker build -t ${IMAGE_NAME}:latest ./frontend
+                    docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${VERSION_TAG}
+                    echo "✅ Docker image built and tagged"
                 '''
             }
         }
@@ -41,39 +44,33 @@ pipeline {
         stage('Push to GitHub Packages') {
             steps {
                 echo "📦 Pushing Docker image to GitHub Packages"
-                script {
-                    def versionTag = "v1.0.${env.BUILD_NUMBER}"
-                    sh """
-                        echo "${DOCKERHUB_CREDENTIALS_PSW}" | docker login ghcr.io -u "${DOCKERHUB_CREDENTIALS_USR}" --password-stdin
-
-                        docker tag nimaa31/tptodo:latest ghcr.io/nimaa31/tptodo:latest
-                        docker tag nimaa31/tptodo:latest ghcr.io/nimaa31/tptodo:${versionTag}
-
-                        docker push ghcr.io/nimaa31/tptodo:latest
-                        docker push ghcr.io/nimaa31/tptodo:${versionTag}
-                    """
-                }
-            }
-        }
-
-stage('Tag Git repo') {
-    steps {
-        echo "🏷️ Tagging GitHub repository with version number"
-        dir('.') {
-            withCredentials([usernamePassword(credentialsId: 'ghcr', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                 sh '''
-                    git config user.email "jenkins@example.com"
-                    git config user.name "jenkins"
-                    VERSION_TAG="v1.0.${BUILD_NUMBER}"
-                    git tag -a $VERSION_TAG -m "Build $BUILD_NUMBER"
-                    git push https://${GIT_USER}:${GIT_PASS}@github.com/Nimaa31/dockerTp.git --tags
-                    echo "✅ Repository tagged with $VERSION_TAG"
+                    echo "${DOCKER_CREDENTIALS_PSW}" | docker login ghcr.io -u "${DOCKER_CREDENTIALS_USR}" --password-stdin
+
+                    docker push ${IMAGE_NAME}:latest
+                    docker push ${IMAGE_NAME}:${VERSION_TAG}
+
+                    echo "✅ Image pushed: ${VERSION_TAG}"
                 '''
             }
         }
-    }
-}
 
+        stage('Tag Git Repository') {
+            steps {
+                echo "🏷️ Tagging GitHub repository"
+                dir('.') {
+                    withCredentials([usernamePassword(credentialsId: 'ghcr-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        sh '''
+                            git config user.email "jenkins@example.com"
+                            git config user.name "jenkins"
+                            git tag -a ${VERSION_TAG} -m "Build ${VERSION_TAG}"
+                            git push https://${GIT_USER}:${GIT_PASS}@github.com/Nimaa31/dockerTp.git --tags
+                            echo "✅ Git repo tagged"
+                        '''
+                    }
+                }
+            }
+        }
     }
 
     post {
