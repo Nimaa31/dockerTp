@@ -1,13 +1,10 @@
 pipeline {
-  agent {
-    docker {
-      image 'node:20' // Utilise un conteneur Node.js officiel
-    }
-  }
+  agent any
 
   environment {
     IMAGE_NAME = "ghcr.io/nimaa31/tptodo"
     VERSION = "v${BUILD_NUMBER}"
+    DOCKER_HOST = "tcp://host.docker.internal:2375"
   }
 
   stages {
@@ -34,12 +31,6 @@ pipeline {
     }
 
     stage('Build Docker image') {
-      agent {
-        docker {
-          image 'docker:latest'
-          args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-      }
       steps {
         sh 'docker build -t $IMAGE_NAME:$VERSION .'
       }
@@ -74,7 +65,7 @@ pipeline {
       echo '❌ Build failed.'
     }
     success {
-      echo '✅ Pipeline completed successfully!'
+      echo '✅ Build succeeded.'
     }
   }
 }
