@@ -9,7 +9,7 @@ pipeline {
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Clone ') {
             steps {
                 git url: "${REPO_URL}", branch: 'master', credentialsId: 'ghcr'
                 echo "Code cloned successfully"
