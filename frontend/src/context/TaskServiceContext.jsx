@@ -1,7 +1,17 @@
 import { createContext, useContext } from 'react';
+import { TaskServiceAxios } from '../services/TaskServiceAxios';
 
-export const TaskServiceContext = createContext(null);
+const TaskServiceContext = createContext();
 
-export const useTaskService = () => {
+export function TaskServiceProvider({ children }) {
+  const service = new TaskServiceAxios();
+  return (
+    <TaskServiceContext.Provider value={service}>
+      {children}
+    </TaskServiceContext.Provider>
+  );
+}
+
+export function useTaskService() {
   return useContext(TaskServiceContext);
-};
+}

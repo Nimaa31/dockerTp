@@ -19,29 +19,30 @@ services:
       retries: 10
       start_period: 10s
 
-  api:
-    build: ./backend
+  app:
+    build:
+      context: .
+      dockerfile: ./jenkins/Dockerfile
+    ports:
+      - "8080:8080"   # Frontend
+      - "3000:3000"   # Backend
+      - "8081:8081"   # Jenkins
     environment:
-      MYSQL_ROOT_PASSWORD: example
+      - MYSQL_ROOT_PASSWORD=example
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./frontend:/app/frontend
+      - ./backend:/app/backend
+      - jenkins_data:/var/jenkins_home
     networks:
       - backend
-    ports:
-      - "3000:3000"
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "8080:3000"
-    depends_on:
-      - api
-    networks:
       - frontend
 
 volumes:
   todolist_data:
+  jenkins_data:
 
 networks:
   backend:
