@@ -1,17 +1,21 @@
-import { createContext, useContext } from 'react';
-import { TaskServiceAxios } from '../services/TaskServiceAxios';
+import { render, screen } from '@testing-library/react';
+import TaskListPage from '../pages/TaskListPage';
+import { TaskServiceContext } from '../context/TaskServiceContext'; // ✅ import corrigé
+import { MemoryRouter } from 'react-router-dom';
 
-const TaskServiceContext = createContext();
+test('affiche "Aucune tâche pour le moment" quand la liste est vide', () => {
+  const mockTaskService = {
+    getAllTasks: () => Promise.resolve([]),
+  };
 
-export function TaskServiceProvider({ children }) {
-  const service = new TaskServiceAxios();
-  return (
-    <TaskServiceContext.Provider value={service}>
-      {children}
+  render(
+    <TaskServiceContext.Provider value={mockTaskService}>
+      <MemoryRouter>
+        <TaskListPage />
+      </MemoryRouter>
     </TaskServiceContext.Provider>
   );
-}
 
-export function useTaskService() {
-  return useContext(TaskServiceContext);
-}
+  // Ajoute un await si ton composant est async
+  expect(screen.getByText(/Aucune tâche pour le moment/i)).toBeInTheDocument();
+});

@@ -36,14 +36,15 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                    docker build -t ${IMAGE_NAME}:latest .
-                    docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${VERSION_TAG}
-                '''
-            }
-        }
+stage('Build Docker Image') {
+    steps {
+        echo "Building Docker image"
+        sh '''
+            docker build -t ghcr.io/nimaa31/todolist:latest ./frontend
+        '''
+    }
+}
+
 
         stage('Tag GitHub Repo') {
             steps {
