@@ -6,13 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo "Cloning repository..."
-                checkout scm
-                echo "Code checked out"
-            }
-        }
 
         stage('Run tests - Frontend') {
             steps {
@@ -44,13 +37,13 @@ pipeline {
                 script {
                     def versionTag = "v1.0.${env.BUILD_NUMBER}"
                     sh """
-                        echo "${DOCKERHUB_CREDENTIALS_PSW}" | docker login ghcr.io -u "${DOCKERHUB_CREDENTIALS_USR}" --password-stdin
+                        echo \"${DOCKERHUB_CREDENTIALS_PSW}\" | docker login ghcr.io -u \"${DOCKERHUB_CREDENTIALS_USR}\" --password-stdin
 
-                        docker tag nimaa31/dockerTp-frontend:latest ghcr.io/nimaa31/dockertp-frontend:latest
-                        docker tag nimaa31/dockerTp-frontend:latest ghcr.io/nimaa31/dockertp-frontend:${versionTag}
+                        docker tag nimaa31/dockerTp-frontend:latest ghcr.io/nimaa31/dockerTp-frontend:latest
+                        docker tag nimaa31/dockerTp-frontend:latest ghcr.io/nimaa31/dockerTp-frontend:${versionTag}
 
-                        docker push ghcr.io/nimaa31/dockertp-frontend:latest
-                        docker push ghcr.io/nimaa31/dockertp-frontend:${versionTag}
+                        docker push ghcr.io/nimaa31/dockerTp-frontend:latest
+                        docker push ghcr.io/nimaa31/dockerTp-frontend:${versionTag}
                     """
                 }
             }
