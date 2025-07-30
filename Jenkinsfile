@@ -8,17 +8,10 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo "📥 Cloning repository..."
-                checkout scm
-            }
-        }
-
         stage('Install dependencies') {
             steps {
+                echo "📦 Installing frontend dependencies"
                 dir('frontend') {
-                    echo "📦 Installing dependencies"
                     sh 'npm install'
                 }
             }
@@ -26,7 +19,7 @@ pipeline {
 
         stage('Run tests') {
             steps {
-                echo "🧪 Running tests in Docker"
+                echo "🧪 Running frontend tests in Docker"
                 sh '''
                     docker rm -f test-frontend || true
                     docker create --name test-frontend node:20 sh -c 'cd /app && npm install && npm test'
@@ -37,7 +30,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker image') {
             steps {
                 echo "🐳 Building Docker image"
                 sh """
@@ -47,9 +40,9 @@ pipeline {
             }
         }
 
-        stage('Push to GHCR') {
+        stage('Push Docker image to GitHub Packages') {
             steps {
-                echo "🚀 Pushing image to GitHub Packages"
+                echo "🚀 Pushing Docker image to GitHub Packages"
                 sh '''
                     echo "${DOCKER_CREDENTIALS_PSW}" | docker login ghcr.io -u "${DOCKER_CREDENTIALS_USR}" --password-stdin
                     docker push ${IMAGE_NAME}:latest
@@ -58,16 +51,16 @@ pipeline {
             }
         }
 
-        stage('Git Tag') {
+        stage('Tag Git Repository') {
             steps {
-                echo "🏷️ Tagging repository"
-                withCredentials([usernamePassword(credentialsId: 'ghcr-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                echo "🏷️ Tagging GitHub repository"
+                withCredentials([usernamePassword(credentialsId: 'ghcr', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                     sh '''
                         rm -rf temp-repo
                         git clone https://${GIT_USER}:${GIT_PASS}@github.com/Nimaa31/dockerTp.git temp-repo
                         cd temp-repo
-                        git config user.name "jenkins"
                         git config user.email "jenkins@example.com"
+                        git config user.name "jenkins"
                         VERSION_TAG="v1.0.${BUILD_NUMBER}"
                         git tag -a $VERSION_TAG -m "Build $VERSION_TAG"
                         git push origin $VERSION_TAG
@@ -79,8 +72,10 @@ pipeline {
 
     post {
         always {
-            echo "🧹 Cleaning up workspace"
-            cleanWs()
+            echo "🧹 Cleaning workspace"
+            node {
+                cleanWs()
+            }
         }
         failure {
             echo "❌ Build failed"
