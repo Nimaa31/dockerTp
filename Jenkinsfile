@@ -56,21 +56,24 @@ pipeline {
             }
         }
 
-        stage('Tag Git repo') {
-            steps {
-                echo "🏷️ Tagging GitHub repository with version number"
-                withCredentials([usernamePassword(credentialsId: 'ghcr', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                    sh '''
-                        git config user.email "jenkins@example.com"
-                        git config user.name "jenkins"
-                        VERSION_TAG="v1.0.${BUILD_NUMBER}"
-                        git tag -a $VERSION_TAG -m "Build $BUILD_NUMBER"
-                        git push https://${GIT_USER}:${GIT_PASS}@github.com/Nimaa31/dockerTp.git --tags
-                        echo "✅ Repository tagged with $VERSION_TAG"
-                    '''
-                }
+stage('Tag Git repo') {
+    steps {
+        echo "🏷️ Tagging GitHub repository with version number"
+        dir('.') {
+            withCredentials([usernamePassword(credentialsId: 'ghcr', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                sh '''
+                    git config user.email "jenkins@example.com"
+                    git config user.name "jenkins"
+                    VERSION_TAG="v1.0.${BUILD_NUMBER}"
+                    git tag -a $VERSION_TAG -m "Build $BUILD_NUMBER"
+                    git push https://${GIT_USER}:${GIT_PASS}@github.com/Nimaa31/dockerTp.git --tags
+                    echo "✅ Repository tagged with $VERSION_TAG"
+                '''
             }
         }
+    }
+}
+
     }
 
     post {
