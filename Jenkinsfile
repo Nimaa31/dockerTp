@@ -32,7 +32,7 @@ pipeline {
             steps {
                 echo "Building frontend Docker image"
                 sh '''
-                    docker build -t lhenryaxel/todolist-frontend:latest ./frontend
+                    docker build -t nimaa31/dockerTp:latest ./frontend
                     echo "Docker image built"
                 '''
             }
@@ -44,13 +44,13 @@ pipeline {
                 script {
                     def versionTag = "v1.0.${env.BUILD_NUMBER}"
                     sh """
-                        echo \"${DOCKERHUB_CREDENTIALS_PSW}\" | docker login ghcr.io -u \"${DOCKERHUB_CREDENTIALS_USR}\" --password-stdin
+                        echo "${DOCKERHUB_CREDENTIALS_PSW}" | docker login ghcr.io -u "${DOCKERHUB_CREDENTIALS_USR}" --password-stdin
 
-                        docker tag lhenryaxel/todolist-frontend:latest ghcr.io/lhenryaxel/todolist-frontend:latest
-                        docker tag lhenryaxel/todolist-frontend:latest ghcr.io/lhenryaxel/todolist-frontend:${versionTag}
+                        docker tag nimaa31/dockerTp:latest ghcr.io/nimaa31/dockertp:latest
+                        docker tag nimaa31/dockerTp:latest ghcr.io/nimaa31/dockertp:${versionTag}
 
-                        docker push ghcr.io/lhenryaxel/todolist-frontend:latest
-                        docker push ghcr.io/lhenryaxel/todolist-frontend:${versionTag}
+                        docker push ghcr.io/nimaa31/dockertp:latest
+                        docker push ghcr.io/nimaa31/dockertp:${versionTag}
                     """
                 }
             }
@@ -65,7 +65,7 @@ pipeline {
                         git config user.name "CI Bot"
                         VERSION_TAG="v1.0.${BUILD_NUMBER}"
                         git tag -a $VERSION_TAG -m "Build $BUILD_NUMBER"
-                        git push https://${GIT_USER}:${GIT_PASS}@github.com/LhenryAxel/todolist.git --tags
+                        git push https://${GIT_USER}:${GIT_PASS}@github.com/Nimaa31/dockerTp.git --tags
                         echo "Repository tagged with $VERSION_TAG"
                     '''
                 }
