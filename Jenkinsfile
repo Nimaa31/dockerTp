@@ -8,13 +8,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo "🔁 Cloning repository..."
-                checkout scm
-                echo "✅ Code checked out"
-            }
-        }
+
 
         stage('Run tests - Frontend') {
             steps {
