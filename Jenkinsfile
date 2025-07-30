@@ -9,7 +9,7 @@ pipeline {
     }
 
     stages {
-        stage('Clone nike zbi ') {
+        stage('Clone Repository') {
             steps {
                 git url: "${REPO_URL}", branch: 'master', credentialsId: 'ghcr'
                 echo "Code cloned successfully"
