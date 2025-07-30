@@ -9,7 +9,8 @@ pipeline {
     }
 
     stages {
-        stage('Clone Repository de con ') {
+// modif de la ligne de stage
+        stage('Clone Repository  ') {
             steps {
                 git url: "${REPO_URL}", branch: 'master', credentialsId: 'ghcr'
                 echo "Code cloned successfully"
