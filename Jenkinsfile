@@ -45,6 +45,10 @@ pipeline {
       steps {
         dir('.') {
           sh '''
+            if [ ! -d .git ]; then
+              echo "❌ Pas dans un repo git"; exit 1
+            fi
+
             git config user.email "jenkins@example.com"
             git config user.name "jenkins"
             git tag -a $VERSION -m "Tag build $VERSION"
