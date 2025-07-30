@@ -70,15 +70,14 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo "🧹 Cleaning workspace"
-            node {
-                cleanWs()
-            }
-        }
-        failure {
-            echo "❌ Build failed"
-        }
+   post {
+    always {
+        echo "🧹 Cleaning workspace"
+        cleanWs()
     }
+    failure {
+        echo "❌ Build failed"
+    }
+}
+
 }
