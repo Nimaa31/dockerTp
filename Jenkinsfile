@@ -4,16 +4,9 @@ pipeline {
   environment {
     IMAGE_NAME = "ghcr.io/nimaa31/tptodo"
     VERSION = "v${BUILD_NUMBER}"
-    DOCKER_HOST = "tcp://host.docker.internal:2375"
   }
 
   stages {
-    stage('Checkout') {
-      steps {
-        git 'https://github.com/Nimaa31/dockerTp.git'
-      }
-    }
-
     stage('Install dependencies') {
       steps {
         dir('frontend') {
@@ -57,15 +50,6 @@ pipeline {
           git push origin $VERSION
         '''
       }
-    }
-  }
-
-  post {
-    failure {
-      echo '❌ Build failed.'
-    }
-    success {
-      echo '✅ Build succeeded.'
     }
   }
 }
