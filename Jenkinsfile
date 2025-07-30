@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS = credentials('ghcr-token')
+        DOCKER_CREDENTIALS = credentials('ghcr')
         VERSION_TAG = "v1.0.${BUILD_NUMBER}"
         IMAGE_NAME = "ghcr.io/nimaa31/tptodo"
     }
