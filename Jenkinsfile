@@ -43,12 +43,14 @@ pipeline {
 
     stage('Tag Git Repository') {
       steps {
-        sh '''
-          git config user.email "jenkins@example.com"
-          git config user.name "jenkins"
-          git tag -a $VERSION -m "Tag build $VERSION"
-          git push origin $VERSION
-        '''
+        dir('.') {
+          sh '''
+            git config user.email "jenkins@example.com"
+            git config user.name "jenkins"
+            git tag -a $VERSION -m "Tag build $VERSION"
+            git push origin $VERSION
+          '''
+        }
       }
     }
   }
