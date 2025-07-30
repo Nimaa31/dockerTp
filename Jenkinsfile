@@ -2,58 +2,84 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_CREDENTIALS = credentials('ghcr') // ID du token GitHub dans Jenkins
-        IMAGE_NAME = "ghcr.io/nimaa31/tptodo"
+        DOCKERHUB_CREDENTIALS = credentials('ghcr')
     }
 
     stages {
         stage('Checkout') {
             steps {
+                echo "Cloning repository..."
                 checkout scm
+                echo "Code checked out"
             }
         }
 
-        stage('Build') {
+        stage('Run tests - Frontend') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                echo "Running frontend tests in isolated container"
+                sh '''
+                    docker rm -f test-frontend || true
+                    docker create --name test-frontend node:20 sh -c 'cd /app && npm install && npm test'
+                    docker cp ./frontend/. test-frontend:/app
+                    docker start -a test-frontend
+                    docker rm test-frontend
+                    echo "Tests completed successfully"
+                '''
             }
         }
 
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                echo "Building frontend Docker image"
+                sh '''
+                    docker build -t lhenryaxel/todolist-frontend:latest ./frontend
+                    echo "Docker image built"
+                '''
             }
         }
 
         stage('Push to GitHub Packages') {
             steps {
-                withDockerRegistry([url: 'https://ghcr.io', credentialsId: 'ghcr']) {
-                    sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
+                echo "Pushing Docker image to GitHub Packages"
+                script {
+                    def versionTag = "v1.0.${env.BUILD_NUMBER}"
+                    sh """
+                        echo \"${DOCKERHUB_CREDENTIALS_PSW}\" | docker login ghcr.io -u \"${DOCKERHUB_CREDENTIALS_USR}\" --password-stdin
+
+                        docker tag lhenryaxel/todolist-frontend:latest ghcr.io/lhenryaxel/todolist-frontend:latest
+                        docker tag lhenryaxel/todolist-frontend:latest ghcr.io/lhenryaxel/todolist-frontend:${versionTag}
+
+                        docker push ghcr.io/lhenryaxel/todolist-frontend:latest
+                        docker push ghcr.io/lhenryaxel/todolist-frontend:${versionTag}
+                    """
                 }
             }
         }
 
-        stage('Tag Repository') {
+        stage('Tag Git repo') {
             steps {
-                sh """
-                git config user.email "jenkins@example.com"
-                git config user.name "jenkins"
-                git tag v$BUILD_NUMBER
-                git push https://$GITHUB_CREDENTIALS@github.com/Nimaa31/dockerTp.git --tags
-                """
+                echo "Tagging GitHub repository with version number"
+                withCredentials([usernamePassword(credentialsId: 'ghcr', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                    sh '''
+                        git config user.email "ci@todo.com"
+                        git config user.name "CI Bot"
+                        VERSION_TAG="v1.0.${BUILD_NUMBER}"
+                        git tag -a $VERSION_TAG -m "Build $BUILD_NUMBER"
+                        git push https://${GIT_USER}:${GIT_PASS}@github.com/LhenryAxel/todolist.git --tags
+                        echo "Repository tagged with $VERSION_TAG"
+                    '''
+                }
             }
         }
     }
 
     post {
         always {
+            echo "Cleaning up workspace"
             cleanWs()
+        }
+        failure {
+            echo "Build failed"
         }
     }
 }
